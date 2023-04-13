@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -25,6 +25,7 @@ public class Audio
     public string name => clip.name;
     public bool IsPlaying => audioSource.isPlaying;
     public float lastUsedTime;
+    public AudioType audioType;
     public Audio Play(bool replay = true)
     {
         if (audioSource != null)
@@ -77,8 +78,47 @@ public class Audio
         return this;
     }
 
-    public void Destroy()
+    public Audio SetType(AudioType audioType)
     {
+        this.audioType=audioType;
+        switch(audioType)
+        {
+            case AudioType.Music:
+            OnVolumeChange(AudioManager.MusicVolume);
+            AudioManager.onMusicVolumeChange+=OnVolumeChange;
+            break;
+            case AudioType.Player:            
+            OnVolumeChange(AudioManager.PlayerVolume);
+            AudioManager.onPlayerVolumeChange+=OnVolumeChange;
+            break;
+            case AudioType.Effect:
+            OnVolumeChange(AudioManager.EffectVolume);
+            AudioManager.onEffectVolumeChange+=OnVolumeChange;
+            break;
+        }
+        return this;
+    }
+    void OnVolumeChange(float volume)
+    {
+        if(audioSource)
+        {
+            audioSource.volume=volume;
+        }
+    }
+    public void Destroy()
+    {  
+        switch(audioType)
+        {
+            case AudioType.Music:
+            AudioManager.onMusicVolumeChange-=OnVolumeChange;
+            break;
+            case AudioType.Player:            
+            AudioManager.onPlayerVolumeChange-=OnVolumeChange;
+            break;
+            case AudioType.Effect:
+            AudioManager.onEffectVolumeChange-=OnVolumeChange;
+            break;
+        }
         if (gameObject)
             Object.Destroy(gameObject);
     }
