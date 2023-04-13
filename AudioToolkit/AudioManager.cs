@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,6 +8,53 @@ public class AudioManager : MonoBehaviour
     const float RemoveIdleInterval = 10f;
     float removeNullTimer = 0;
     float removeIdleTimer = 0;
+
+    static float globalVolume;
+    public static float GlobalVolume
+    {
+        get=>globalVolume;
+        set
+        {
+            globalVolume=value;
+            AudioListener.volume=value;
+        }
+    }
+
+    static float musicVolume;
+    public static float MusicVolume
+    {
+        get=>musicVolume;
+        set
+        {
+            musicVolume=value;
+            onMusicVolumeChange?.Invoke(value);
+        }
+    }
+    internal static Action<float> onMusicVolumeChange;
+
+    static float playerVolume;
+    public static float PlayerVolume
+    {
+        get=>playerVolume;
+        set
+        {
+            playerVolume=value;
+            onPlayerVolumeChange?.Invoke(value);
+        }
+    }
+    internal static Action<float> onPlayerVolumeChange;
+
+    static float effectVolume;
+    public static float EffectVolume
+    {
+        get=>effectVolume;
+        set
+        {
+            effectVolume=value;
+            onEffectVolumeChange?.Invoke(value);
+        }
+    }
+    internal static Action<float> onEffectVolumeChange;
 
     public static AudioManager Instance;
     private void Awake()
@@ -19,6 +66,7 @@ public class AudioManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
+        GlobalVolume=GlobalVolume;
     }
 
     public Audio BGM;
@@ -249,6 +297,11 @@ public class AudioManager : MonoBehaviour
         return new(clip, parent == null ? Instance.SceneAudioParent.transform : parent, false, priority);
     }
 
-
+     public enum AudioType
+     {
+        Music,
+        Player,
+        Effect,
+     }
 
 }
