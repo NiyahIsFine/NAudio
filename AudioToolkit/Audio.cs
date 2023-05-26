@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class Audio
 {
-    public Audio(string clipPath, Transform parent, bool play, int priority)
+     public Audio(string clipPath, Transform parent, bool play, int priority)
         => new Audio(AssetManager.GetResource<AudioClip>(clipPath), parent, play, priority);
     public Audio(AudioClip _clip, Transform parent, bool play, int priority)
     {
@@ -14,7 +14,7 @@ public class Audio
         audioSource = gameObject.GetComponent<AudioSource>();
         audioSource.clip = clip;
         audioSource.priority = priority;
-
+        volume = 1;
         lastUsedTime = Time.unscaledTime + clip.length;
         if (play)
             Play();
@@ -22,6 +22,7 @@ public class Audio
     public GameObject gameObject;
     public AudioSource audioSource;
     public AudioClip clip;
+    public float volume;
     public string name => clip.name;
     public bool IsPlaying => audioSource.isPlaying;
     public float lastUsedTime;
@@ -89,13 +90,13 @@ public class Audio
     {
         if (audioSource != null)
         {
-            gameObject.AddComponent<AudioVolumeController>().Set(minDistance, maxDistance);
+            gameObject.AddComponent<AudioRollOffVolume>().Set(this, minDistance, maxDistance);
         }
         return this;
     }
     public Audio RemoveRollOff(float volume = 1)
     {
-        if (gameObject.TryGetComponent(out AudioVolumeController audioVolumeController))
+        if (gameObject.TryGetComponent(out AudioRollOffVolume audioVolumeController))
         {
             Object.Destroy(audioVolumeController);
         }
@@ -152,6 +153,7 @@ public class Audio
     }
     void OnVolumeChange(float volume)
     {
+        this.volume = volume;
         if (audioSource)
         {
             audioSource.volume = volume;
