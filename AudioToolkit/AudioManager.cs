@@ -312,10 +312,3 @@ public class AudioManager : MonoBehaviour
 
 
 }
-public enum AudioType
-{
-    None,
-    Music,
-    Player,
-    Effect,
-}

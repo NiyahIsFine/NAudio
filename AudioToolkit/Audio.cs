@@ -183,4 +183,12 @@ public class Audio
     {
         return audio != null && audio.gameObject != null;
     }
+
+    public enum AudioType
+    {
+        None,
+        Music,
+        Player,
+        Effect,
+    }
 }
