@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -25,14 +25,21 @@ public class Audio
     public string name => clip.name;
     public bool IsPlaying => audioSource.isPlaying;
     public float lastUsedTime;
+    public float PlayingTime => audioSource.time;
     public AudioType audioType;
     public Audio Play(bool replay = true)
     {
         if (audioSource != null)
         {
-            if (!audioSource.isPlaying || replay)
+            if (replay)
             {
                 lastUsedTime = Time.unscaledTime + clip.length;
+                audioSource.time = 0;
+                audioSource.Play();
+            }
+            if (!audioSource.isPlaying)
+            {
+                lastUsedTime = Time.unscaledTime + clip.length - audioSource.time;
                 audioSource.Play();
             }
         }
@@ -53,6 +60,25 @@ public class Audio
         }
         return this;
     }
+    public Audio Pause(bool active)
+    {
+        PauseP(active);
+        return this;
+    }
+    void PauseP(bool active)
+    {
+        if (audioSource != null)
+        {
+            if (active)
+                audioSource.Pause();
+            else
+            {
+                audioSource.UnPause();
+                lastUsedTime = Time.unscaledTime + clip.length - audioSource.time;
+            }
+        }
+    }
+
     public Audio SetPlayOnAwake(bool active)
     {
         if (audioSource != null)
@@ -80,45 +106,72 @@ public class Audio
 
     public Audio SetType(AudioType audioType)
     {
-        this.audioType=audioType;
-        switch(audioType)
+        if (this.audioType != AudioType.None && this.audioType != audioType)
+        {
+            switch (this.audioType)
+            {
+                case AudioType.Music:
+                    AudioManager.onMusicVolumeChange -= OnVolumeChange;
+                    break;
+                case AudioType.Player:
+                    AudioManager.onPlayerVolumeChange -= OnVolumeChange;
+                    break;
+                case AudioType.Effect:
+                    AudioManager.onEffectVolumeChange -= OnVolumeChange;
+                    break;
+            }
+        }
+        this.audioType = audioType;
+        switch (audioType)
         {
             case AudioType.Music:
-            OnVolumeChange(AudioManager.MusicVolume);
-            AudioManager.onMusicVolumeChange+=OnVolumeChange;
-            break;
-            case AudioType.Player:            
-            OnVolumeChange(AudioManager.PlayerVolume);
-            AudioManager.onPlayerVolumeChange+=OnVolumeChange;
-            break;
+                OnVolumeChange(AudioManager.MusicVolume);
+                AudioManager.onMusicVolumeChange += OnVolumeChange;
+                break;
+            case AudioType.Player:
+                OnVolumeChange(AudioManager.PlayerVolume);
+                AudioManager.onPlayerVolumeChange += OnVolumeChange;
+                break;
             case AudioType.Effect:
-            OnVolumeChange(AudioManager.EffectVolume);
-            AudioManager.onEffectVolumeChange+=OnVolumeChange;
-            break;
+                OnVolumeChange(AudioManager.EffectVolume);
+                AudioManager.onEffectVolumeChange += OnVolumeChange;
+                break;
+            case AudioType.None:
+                OnVolumeChange(1);
+                break;
         }
+        return this;
+    }
+    public Audio SetPauseControl(bool active = true)
+    {
+        if (active)
+            AudioManager.onPauseControl += PauseP;
+        else
+            AudioManager.onPauseControl -= PauseP;
         return this;
     }
     void OnVolumeChange(float volume)
     {
-        if(audioSource)
+        if (audioSource)
         {
-            audioSource.volume=volume;
+            audioSource.volume = volume;
         }
     }
     public void Destroy()
-    {  
-        switch(audioType)
+    {
+        switch (audioType)
         {
             case AudioType.Music:
-            AudioManager.onMusicVolumeChange-=OnVolumeChange;
-            break;
-            case AudioType.Player:            
-            AudioManager.onPlayerVolumeChange-=OnVolumeChange;
-            break;
+                AudioManager.onMusicVolumeChange -= OnVolumeChange;
+                break;
+            case AudioType.Player:
+                AudioManager.onPlayerVolumeChange -= OnVolumeChange;
+                break;
             case AudioType.Effect:
-            AudioManager.onEffectVolumeChange-=OnVolumeChange;
-            break;
+                AudioManager.onEffectVolumeChange -= OnVolumeChange;
+                break;
         }
+        AudioManager.onPauseControl -= PauseP;
         if (gameObject)
             Object.Destroy(gameObject);
     }

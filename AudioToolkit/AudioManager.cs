@@ -12,21 +12,21 @@ public class AudioManager : MonoBehaviour
     static float globalVolume;
     public static float GlobalVolume
     {
-        get=>globalVolume;
+        get => globalVolume;
         set
         {
-            globalVolume=value;
-            AudioListener.volume=value;
+            globalVolume = value;
+            AudioListener.volume = value;
         }
     }
 
     static float musicVolume;
     public static float MusicVolume
     {
-        get=>musicVolume;
+        get => musicVolume;
         set
         {
-            musicVolume=value;
+            musicVolume = value;
             onMusicVolumeChange?.Invoke(value);
         }
     }
@@ -35,10 +35,10 @@ public class AudioManager : MonoBehaviour
     static float playerVolume;
     public static float PlayerVolume
     {
-        get=>playerVolume;
+        get => playerVolume;
         set
         {
-            playerVolume=value;
+            playerVolume = value;
             onPlayerVolumeChange?.Invoke(value);
         }
     }
@@ -47,14 +47,26 @@ public class AudioManager : MonoBehaviour
     static float effectVolume;
     public static float EffectVolume
     {
-        get=>effectVolume;
+        get => effectVolume;
         set
         {
-            effectVolume=value;
+            effectVolume = value;
             onEffectVolumeChange?.Invoke(value);
         }
     }
     internal static Action<float> onEffectVolumeChange;
+
+    static bool pauseControl;
+    public static bool PauseControl
+    {
+        get => pauseControl;
+        set
+        {
+            pauseControl = value;
+            onPauseControl?.Invoke(value);
+        }
+    }
+    internal static Action<bool> onPauseControl;
 
     public static AudioManager Instance;
     private void Awake()
@@ -66,7 +78,7 @@ public class AudioManager : MonoBehaviour
         }
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        GlobalVolume=GlobalVolume;
+        GlobalVolume = GlobalVolume;
     }
 
     public Audio BGM;
@@ -112,7 +124,7 @@ public class AudioManager : MonoBehaviour
                     string[] str_keyNames = keyNames.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (string key in str_keyNames)
                     {
-#if UNITY_EDITOR
+#if XY_Debug
                         Debug.Log("从audioGroup中移除无效项，key：" + key);
 #endif
                         audioGroup.Remove(key);
@@ -135,7 +147,7 @@ public class AudioManager : MonoBehaviour
                 {
                     foreach (var key in intervalAudioTmp)
                     {
-#if UNITY_EDITOR
+#if XY_Debug
                         Debug.Log("从intervalAudio中移除无效项，key：" + key);
 #endif
                         intervalAudio.Remove(key);
@@ -163,7 +175,7 @@ public class AudioManager : MonoBehaviour
                     string[] str_keyNames = keyNames.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (string key in str_keyNames)
                     {
-#if UNITY_EDITOR
+#if XY_Debug
                         Debug.Log("从audioGroup中移除闲置项：" + key);
 #endif
                         audioGroup.Remove(key);
@@ -175,7 +187,7 @@ public class AudioManager : MonoBehaviour
                 intervalAudioTmp.Clear();
                 foreach (var dic in intervalAudio)
                 {
-                    if (dic.Value && (Time.unscaledTime - dic.Value.lastUsedTime) > RemoveIdleInterval)
+                    if (dic.Value && dic.Value.PlayingTime < 0.01f && (Time.unscaledTime - dic.Value.lastUsedTime) > RemoveIdleInterval)
                     {
                         intervalAudioTmp.Add(dic.Key);
                         if (dic.Value != null)
@@ -186,7 +198,7 @@ public class AudioManager : MonoBehaviour
                 {
                     foreach (var key in intervalAudioTmp)
                     {
-#if UNITY_EDITOR
+#if XY_Debug
                         Debug.Log("从intervalAudio中移除闲置项，key：" + key);
 #endif
                         intervalAudio.Remove(key);
@@ -297,11 +309,13 @@ public class AudioManager : MonoBehaviour
         return new(clip, parent == null ? Instance.SceneAudioParent.transform : parent, false, priority);
     }
 
-     public enum AudioType
-     {
-        Music,
-        Player,
-        Effect,
-     }
 
+
+}
+public enum AudioType
+{
+    None,
+    Music,
+    Player,
+    Effect,
 }
