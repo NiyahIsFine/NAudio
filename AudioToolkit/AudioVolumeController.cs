@@ -4,14 +4,16 @@ using UnityEngine;
 
 public class AudioVolumeController : MonoBehaviour
 {
+    Audio _audio;
     AudioSource audioSource;
     public float minDistance, maxDistance;
     private void Awake()
     {
         audioSource = GetComponent<AudioSource>();
     }
-    public void Set(float minDistance, float maxDistance)
+    public void Set(Audio audio, float minDistance, float maxDistance)
     {
+        _audio = audio;
         this.minDistance = minDistance;
         this.maxDistance = maxDistance;
     }
@@ -33,6 +35,6 @@ public class AudioVolumeController : MonoBehaviour
         {
             volume = 1 - ((d - minDistance) / (maxDistance - minDistance));
         }
-        audioSource.volume = volume;
+        audioSource.volume = _audio.volume * volume;
     }
 }
